@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {
   FaHome, FaUserFriends, FaCompass, FaVideo,
-  FaInbox, FaRegUser, FaPlus
+  FaInbox, FaRegUser, FaPlus, FaUpload
 } from 'react-icons/fa';
 
 export default function MainLayout({ children }) {
@@ -19,37 +19,25 @@ export default function MainLayout({ children }) {
                 <nav className="mt-4">
                     <ul className="space-y-2">
                         <li>
-                            <Link
-                                href="/"
-                                className="flex items-center p-3 hover:bg-gray-100 rounded-md mx-2"
-                            >
+                            <Link href="/" className="flex items-center p-3 hover:bg-gray-100 rounded-md mx-2">
                                 <FaHome className="text-xl mr-3" />
                                 <span>For You</span>
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                href="/following"
-                                className="flex items-center p-3 hover:bg-gray-100 rounded-md mx-2"
-                            >
+                            <Link href="/following" className="flex items-center p-3 hover:bg-gray-100 rounded-md mx-2">
                                 <FaUserFriends className="text-xl mr-3" />
                                 <span>Following</span>
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                href="/explore"
-                                className="flex items-center p-3 hover:bg-gray-100 rounded-md mx-2"
-                            >
+                            <Link href="/explore" className="flex items-center p-3 hover:bg-gray-100 rounded-md mx-2">
                                 <FaCompass className="text-xl mr-3" />
                                 <span>Explore</span>
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                href="/live"
-                                className="flex items-center p-3 hover:bg-gray-100 rounded-md mx-2"
-                            >
+                            <Link href="/live" className="flex items-center p-3 hover:bg-gray-100 rounded-md mx-2">
                                 <FaVideo className="text-xl mr-3" />
                                 <span>Live</span>
                             </Link>
@@ -70,18 +58,26 @@ export default function MainLayout({ children }) {
                     ))}
                 </div>
 
-                <div className="mt-2 pt-4 px-3">
+                {/* Change 1: Updated Login Button in Sidebar */}
+                <div className="px-3 py-4 mt-2">
                     <p className="text-sm text-gray-500 mb-4">Log in to follow creators, like videos, and view comments.</p>
-                    <button className="w-full py-2 px-4 text-xs rounded-md font-medium mb-2">
-                        Login
-                    </button>
+                    <Link href="/login">
+                        <button className="w-full py-2 px-4 border rounded-md font-medium mb-2 hover:bg-gray-50">
+                            Log in
+                        </button>
+                    </Link>
+                    <Link href="/signup">
+                        <button className="w-full py-2 px-4 bg-red-500 text-white rounded-md font-medium hover:bg-red-600">
+                            Sign up
+                        </button>
+                    </Link>
                 </div>
-    
+
                 <div className="border-t mt-4 pt-4 px-3 text-sm text-gray-500">
                     <p className="mb-2">© 2024 My Cheese</p>
                 </div>
             </div>
-            
+
             {/* Main Content */}
             <div className="flex-1 ml-60">
                 <div className="max-w-[1150px] mx-auto">
@@ -93,12 +89,12 @@ export default function MainLayout({ children }) {
                                 <input
                                     type="text"
                                     placeholder="Search accounts and videos"
-                                    className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-4 rounded-full"
+                                    className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-4"
                                 />
                                 <FaCompass className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                             </div>
                         </div>
-                        <div className='w-1/3 flex justify-end space-x-4'>
+                        <div className='w-1/3 flex justify-end items-center space-x-4'>
                             <Link href="/upload">
                                 <button className="flex items-center px-3 py-1 hover:bg-gray-50 border rounded-md">
                                     <FaUpload className="mr-2" />
@@ -106,16 +102,16 @@ export default function MainLayout({ children }) {
                                 </button>
                             </Link>
 
-                            <button className="text-white  px-6 py-1 bg-red-500 rounded-md">
-                                Log in
-                            </button>
+                            {/* Change 2: Updated Header Login Button */}
+                            <Link href="/login">
+                                <button className="bg-red-500 text-white px-6 py-1 rounded-md hover:bg-red-600">
+                                    Log in
+                                </button>
+                            </Link>
                         </div>
 
                         <div>
-                            <Link 
-                                href='/profile'
-                                className='flex items-center p-3 hover:bg-gray-100 rounded-md mx-2'
-                            >
+                            <Link href='/profile' className='flex items-center p-3 hover:bg-gray-100 rounded-md mx-2'>
                                 <FaRegUser className='text-xl mr-3' />
                                 <span>Profile</span>
                             </Link>
