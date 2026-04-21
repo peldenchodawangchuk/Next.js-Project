@@ -1,110 +1,34 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
-import api from "../lib/api-config";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { useState } from 'react';
+import { AuthProvider } from '../contexts/authContext';
+import { Toaster } from 'react-hot-toast';
+import './globals.css';
+import MainLayout from '../components/layout/MainLayout';
 
-const AuthContext = createContext();
+export default function RootLayout({ children }) {
+   const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
-    const [token, setToken] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const storedToken = localStorage.getItem("token");
-
-        if (storedToken) {
-            try {
-                const decoded = jwtDecode(storedToken);
-
-                if (decoded.exp * 1000 < Date.now()) {
-                    localStorage.removeItem("token");
-                    setUser(null);
-                    setToken(null);
-                } else {
-                    setToken(storedToken);
-                    setUser(decoded);
-                }
-            } catch (error) {
-                console.error("Invalid token:", error);
-                localStorage.removeItem("token");
-            }
-        }
-
-        setLoading(false);
-    }, []);
-
-    const login = async (email, password) => {
-        try {
-            const response = await api.post("/auth/login", {
-                email,
-                password,
-            });
-
-            const newToken = response.data.token;
-            localStorage.setItem("token", newToken);
-
-            const decoded = jwtDecode(newToken);
-            setToken(newToken);
-            setUser(decoded);
-
-            return { success: true };
-        } catch (error) {
-            return {
-                success: false,
-                message: error.response?.data?.message || "Login failed",
-            };
-        }
-    };
-
-    const register = async (username, email, password) => {
-        try {
-            const response = await api.post("/auth/register", {
-                username,
-                email,
-                password,
-            });
-
-            const newToken = response.data.token;
-            localStorage.setItem("token", newToken);
-
-            const decoded = jwtDecode(newToken);
-            setToken(newToken);
-            setUser(decoded);
-
-            return { success: true };
-        } catch (error) {
-            return {
-            success: false,
-            message: error.response?.data?.message || "Registration failed",
-            };
-        }
-    };
-
-    const logout = () => {
-        localStorage.removeItem("token");
-        setUser(null);
-        setToken(null);
-    };
-
-    return (
-        <AuthContext.Provider
-            value={{
-            user,
-            token,
-            loading,
-            login,
-            register,
-            logout,
-            isAuthenticated: !!token,
-        }}
-    >
-        {children}
-    </AuthContext.Provider>
-    );
-}
-
-export function useAuth() {
-  return useContext(AuthContext);
+  return (
+    <html lang="en">
+      <body>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <Toaster position="top-center" />
+            <MainLayout>{children}</MainLayout>
+          </AuthProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </body>
+    </html>
+  );
 }
