@@ -1,34 +1,100 @@
-'use client';
+"use client";
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useState } from 'react';
-import { AuthProvider } from '../contexts/authContext';
-import { Toaster } from 'react-hot-toast';
-import './globals.css';
-import MainLayout from '../components/layout/MainLayout';
+import { createContext, useState, useContext, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import apiClient from '../lib/axios';
+import * as jwt_decode from 'jwt-decode';
+import toast from 'react-hot-toast';
 
-export default function RootLayout({ children }) {
-   const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000, // 1 minute
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const AuthContext = createContext();
 
-  return (
-    <html lang="en">
-      <body>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <Toaster position="top-center" />
-            <MainLayout>{children}</MainLayout>
-          </AuthProvider>
-          <ReactQueryDevtools initialIsOpen={false} />
-        </QueryClientProvider>
-      </body>
-    </html>
-  );
-}
+export const useAuth = () => useContext(AuthContext);
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded = jwt_decode(token);
+        // Check if token is expired
+        if (decoded.exp * 1000 < Date.now()) {
+          localStorage.removeItem('token');
+          setUser(null);
+        } else {
+          setUser(decoded);
+          // Fetch user details
+          fetchUserDetails(decoded.id);
+        }
+      } catch (error) {
+        localStorage.removeItem('token');
+        setUser(null);
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  // Fetch more user details from backend
+  const fetchUserDetails = async (userId) => {
+    try {
+      const response = await apiClient.get(`/users/${userId}`);
+      setUser(prev => ({ ...prev, ...response.data }));
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
+
+  // Register a new user
+  const register = async (userData) => {
+    try {
+      const response = await apiClient.post('users/register', userData);
+      toast.success('Registration successful! Please log in.');
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.message || 'Registration failed';
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  // Login user
+  const login = async (credentials) => {
+    try {
+      const response = await apiClient.post('users/login', credentials);
+      const { token, user } = response.data;
+      
+      localStorage.setItem('token', token);
+      setUser(user);
+      toast.success('Login successful!');
+      
+      return user;
+    } catch (error) {
+      const message = error.response?.data?.message || 'Login failed';
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  // Logout user
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    router.push('/');
+    toast.success('Logged out successfully');
+  };
+
+  const value = {
+    user,
+    loading,
+    register,
+    login,
+    logout,
+    isAuthenticated: !!user,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
