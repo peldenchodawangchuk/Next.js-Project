@@ -1,3 +1,4 @@
+/* The code snippet you provided is a JavaScript React component named `MainLayout`. */
 "use client";
 
 import { useState } from "react";
